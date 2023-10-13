@@ -1,10 +1,12 @@
 #include "primer/trie.h"
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <stack>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include "common/exception.h"
 
@@ -18,20 +20,23 @@ auto Trie::Get(std::string_view key) const -> const T * {
   // nullptr. After you find the node, you should use `dynamic_cast` to cast it to `const TrieNodeWithValue<T> *`. If
   // dynamic_cast returns `nullptr`, it means the type of the value is mismatched, and you should return nullptr.
   // Otherwise, return the value.
-  if (key.length()==0) {
-    return nullptr;
-  }
-  auto root=this->root_;
-  if (root==nullptr) {
-    return nullptr;
-  }
-  for (auto c:key) {
-    if (!root->children_.count(c)) {
-      return nullptr;
+
+  std::shared_ptr<const TrieNode> curnode=this->root_;
+  uint64_t startkey=0;
+  uint64_t keylen=key.length();
+
+  while (startkey<keylen&&curnode) {
+    char c=key[startkey++];
+    if (curnode->children_.find(c)==curnode->children_.end()) {
+      curnode=nullptr;
+      break;
     }
-    root=root->children_.at(c);
+    curnode=curnode->children_.at(c);
   }
-  const auto *valnode=dynamic_cast<const TrieNodeWithValue<T>*>(root.get());
+  if (!curnode||startkey!=keylen||!curnode->is_value_node_) {
+    return nullptr;
+  }
+  const auto *valnode=dynamic_cast<const TrieNodeWithValue<T> *>(curnode.get());
   return valnode?valnode->value_.get():nullptr;
 }
 
@@ -42,23 +47,25 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
 
   // You should walk through the trie and create new nodes if necessary. If the node corresponding to the key already
   // exists, you should create a new `TrieNodeWithValue`.
-  auto node=this->root_;
-  std::shared_ptr<T> shared_val=std::make_shared<T>(value);  //make shared value
+  
+  std::shared_ptr<const TrieNode> node=this->root_;
+  std::shared_ptr<T> shared_val=std::make_shared<T>(std::move(value));  //make shared value
   std::vector<std::shared_ptr<const TrieNode>> nodestack;
-  int startkey=0;
-  int keylen=key.length();
-  for (auto c:key) {
-    auto find=node->children_.find(c);
-    if (find==node->children_.end()) {
+  uint64_t startkey=0;
+  uint64_t keylen=key.length();
+
+  while (startkey<keylen&&node) {
+    char c=key[startkey++];
+    nodestack.push_back(node);
+    if (node->children_.find(c)==node->children_.end()) {
       node=nullptr;
       break;
     }
-    nodestack.push_back(node);
     node=node->children_.at(c);
-    startkey++;
   }
+
   //create the different node;
-  std::shared_ptr<const TrieNodeWithValue<T>> new_leafnode=node==nullptr?std::make_shared<TrieNodeWithValue<T>>(shared_val):std::make_shared<TrieNodeWithValue<T>>(node->children_,shared_val);
+  std::shared_ptr<const TrieNodeWithValue<T>> new_leafnode=node==nullptr?std::make_shared<const TrieNodeWithValue<T>>(shared_val):std::make_shared<const TrieNodeWithValue<T>>(node->children_,shared_val);
   std::shared_ptr<const TrieNode> child_node=new_leafnode;
   while (startkey<keylen) {
     char c=key[--keylen];
@@ -68,16 +75,23 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
   }
   //copy the previous node;
   //construct the new tree from the bottom to top
-  std::shared_ptr<TrieNode> uppernode;
-  for (int i=nodestack.size()-1; i>=0; i--) {
-    uppernode=std::shared_ptr<TrieNode>(nodestack[i]->Clone());
+  
+  node=child_node;
+  for (int i=nodestack.size()-1;i>=0; i--) {
+    node=std::shared_ptr<TrieNode>(nodestack[i]->Clone());
     //get it's children
     char c=key[i];
-    uppernode->children_[c]=child_node;
-    child_node=uppernode;
+    const_cast<TrieNode *>(node.get())->children_[c]=child_node;
+    child_node=node;
   }
   //construct the trie and return
-  return Trie(uppernode);
+  /*
+  for (size_t i = nodestack.size() - 1; i < nodestack.size(); --i) {
+    node = std::shared_ptr<const TrieNode>(nodestack[i]->Clone());
+    const_cast<TrieNode *>(node.get())->children_[key[i]] = child_node;
+    child_node = node;
+  }*/
+  return Trie(node);
 }
 
 auto Trie::Remove(std::string_view key) const -> Trie {
@@ -85,18 +99,26 @@ auto Trie::Remove(std::string_view key) const -> Trie {
 
   // You should walk through the trie and remove nodes if necessary. If the node doesn't contain a value any more,
   // you should convert it to `TrieNode`. If a node doesn't have children any more, you should remove it.
+  
   auto node=this->root_;
   std::vector<std::shared_ptr<const TrieNode>> nodestack;
-  for (auto c: key) {
-    if (node==nullptr) {return *this;}
-    auto find=node->children_.find(c);
-    if (find==node->children_.end()) {return *this;}
+  uint64_t startkey=0;
+  uint64_t keylen=key.size();
+  
+  //delete node
+  while(startkey<keylen&&node) {
+    char c=key[startkey];
     nodestack.push_back(node);
+    if (node->children_.find(c)==node->children_.end()) {
+      node=nullptr;
+      break;
+    }
     node=node->children_.at(c);
   }
-  if (!node->is_value_node_) {
+  if (startkey!=keylen||!node||!node->is_value_node_) {
     return *this;
   }
+
   std::shared_ptr<const TrieNode> lastnode=node->children_.empty()?nullptr:std::make_shared<const TrieNode>(node->children_);
   int startdel=nodestack.size()-1;
   for (; startdel>=0&&lastnode==nullptr; startdel--) {
@@ -114,6 +136,7 @@ auto Trie::Remove(std::string_view key) const -> Trie {
     uppernode->children_[c]=lastnode;
     lastnode=uppernode;
   }
+
   return Trie(uppernode);
 }
 
