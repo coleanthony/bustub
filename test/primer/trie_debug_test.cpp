@@ -1,9 +1,11 @@
 #include <fmt/format.h>
 #include <zipfian_int_distribution.h>
 #include <bitset>
+#include <cstdint>
 #include <functional>
 #include <numeric>
 #include <optional>
+#include <ostream>
 #include <random>
 #include <thread>  // NOLINT
 
@@ -41,7 +43,9 @@ TEST(TrieDebugger, TestCase) {
   }
 
   // Put a breakpoint here.
-
+  std::cout<<trie.GetRoot()->children_.size()<<std::endl;
+  std::cout<<trie.GetRoot()->children_.at('9')->children_.size()<<std::endl;
+  std::cout<<trie.Get<uint32_t>("969")<<std::endl;
   // (1) How many children nodes are there on the root?
   // Replace `CASE_1_YOUR_ANSWER` in `trie_answer.h` with the correct answer.
   if (CASE_1_YOUR_ANSWER != Case1CorrectAnswer()) {

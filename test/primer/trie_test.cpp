@@ -26,11 +26,11 @@ TEST(TrieTest, TrieStructureCheck) {
   auto trie = Trie();
   // Put something
   trie = trie.Put<uint32_t>("test", 233);
-  
+
   ASSERT_EQ(*trie.Get<uint32_t>("test"), 233);
   // Ensure the trie is the same representation of the writeup
   // (Some students were using '\0' as the terminator in previous semesters)
-  
+
   auto root = trie.GetRoot();
   ASSERT_EQ(root->children_.size(), 1);
   ASSERT_EQ(root->children_.at('t')->children_.size(), 1);

@@ -49,12 +49,12 @@ class StringExpression : public AbstractExpression {
     std::string res;
     switch (this->expr_type_) {
       case StringExpressionType::Lower:
-        for (char c:val) {
+        for (char c : val) {
           res.push_back(tolower(c));
         }
         break;
       case StringExpressionType::Upper:
-        for(char c:val){
+        for (char c : val) {
           res.push_back(toupper(c));
         }
         break;
