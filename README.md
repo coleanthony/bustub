@@ -9,7 +9,9 @@ BusTub is a relational database management system built at [Carnegie Mellon Univ
 BusTub supports basic SQL and comes with an interactive shell. You can get it running after finishing all the course projects.
 
 <img src="logo/sql.png" alt="BusTub SQL" width="400">
+
 -----------------
+
 This is the public version of my bustub project. I have added the code for my lab0 in the project. My experimental records and my course learning records are below.
 [CMU15445（Spring 2023）PROJECT #0 - C++ PRIMER](https://zhuanlan.zhihu.com/p/661602861)
 [CMU15445（Spring 2023）PROJECT #1 - Buffer Pool](https://zhuanlan.zhihu.com/p/662502415)
