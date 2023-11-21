@@ -12,8 +12,12 @@ BusTub supports basic SQL and comes with an interactive shell. You can get it ru
 
 -----------------
 
-This is the public version of my bustub project. I have added the code for my lab0 in the project. My experimental records and my course learning records are below.
+This is the public version of my bustub project. I have added the code for my lab0 in the project. My experimental records and my course learning records are below:
+
 [CMU15445（Spring 2023）PROJECT #0 - C++ PRIMER](https://zhuanlan.zhihu.com/p/661602861)
+
 [CMU15445（Spring 2023）PROJECT #1 - Buffer Pool](https://zhuanlan.zhihu.com/p/662502415)
+
 [CMU15445（Spring 2023）PROJECT #2 - B+Tree](https://zhuanlan.zhihu.com/p/665802858)
+
 [CMU15445（Spring 2023）PROJECT #3 - Query Execution](https://zhuanlan.zhihu.com/p/667564887)
