@@ -23,3 +23,7 @@ This is the public version of my bustub project. I have added the code for my la
 [CMU15445（Spring 2023）PROJECT #3 - Query Execution](https://zhuanlan.zhihu.com/p/667564887)
 
 [CMU15445（Spring 2023）PROJECT #4 - Concurrency Control](https://zhuanlan.zhihu.com/p/668922206)
+
+[CMU15445（Spring 2023）Course Notes]
+
+[CMU15445（Spring 2023）Bustub Project总结与代码分析]
